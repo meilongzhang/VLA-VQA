@@ -16,7 +16,7 @@ import copy
 from tasks.vqa_task_utils import QAOutput
 
 
-@registry.register_model("openvla")
+# @registry.register_model("openvla")
 class OpenVLA(BaseModel):
     """
     OpenVLA model.
@@ -126,26 +126,29 @@ class OpenVLA(BaseModel):
             text_input = [prompt.format(question) for question in samples["text_input_raw"]]
         else:
             text_input = samples["text_input_raw"]
+        
+        print("text_input", text_input)
 
         model_inputs = self.processor(text=text_input, images=image, return_tensors="pt", padding="longest").to(self.dtype).to(self.device)
         input_len = model_inputs["input_ids"].shape[-1]
 
         with torch.inference_mode():
-            outputs = self.model.generate(**model_inputs, max_new_tokens=1, do_sample=False, output_logits=True, return_dict_in_generate=True)
+            outputs = self.model.generate(**model_inputs, max_new_tokens=self.model.get_action_dim(unnorm_key), do_sample=False, output_logits=True, return_dict_in_generate=True)
             # When the model generates a response, it appends the generated tokens to this input sequence.
             # outputs = outputs[:, input_len:-self.model.get_action_dim(unnorm_key)]
             # print(outputs)
             # print(outputs.logits[0])
-            outputs = torch.stack([outputs.logits[i][:, :-self.config.n_action_bins-self.config.pad_to_multiple_of].argmax(dim=-1) for i in range(len(outputs.logits))], dim=-1)
-            # n_action_bins = self.config.n_action_bins
-            # pad_to_multiple_of = self.config.pad_to_multiple_of
-            # outputs = torch.stack([
-            #     torch.cat([
-            #         outputs.logits[i][:, :-n_action_bins - pad_to_multiple_of],  # keep the front part
-            #         outputs.logits[i][:, -pad_to_multiple_of:]                   # keep the pad tail
-            #     ], dim=-1).argmax(dim=-1)
-            #     for i in range(len(outputs.logits))
-            # ], dim=-1)
+            # outputs = torch.stack([outputs.logits[i][:, :-self.config.n_action_bins-self.config.pad_to_multiple_of].argmax(dim=-1) for i in range(len(outputs.logits))], dim=-1)
+            n_action_bins = self.config.n_action_bins
+            pad_to_multiple_of = self.config.pad_to_multiple_of
+            outputs = torch.stack([
+                torch.cat([
+                    outputs.logits[i][:, :2],  # mask out </s> token
+                    outputs.logits[i][:, 3:-n_action_bins - pad_to_multiple_of],  # keep the front part
+                    outputs.logits[i][:, -pad_to_multiple_of:]                   # keep the pad tail
+                ], dim=-1).argmax(dim=-1)
+                for i in range(len(outputs.logits))
+            ], dim=-1)
             # print(outputs)
             # outputs = outputs[:, input_len:]
             print("outputs.shape", outputs.shape)
@@ -181,7 +184,6 @@ class OpenVLA(BaseModel):
             **kwargs
         ):
         print("self.processor.tokenizer.vocab_size", self.processor.tokenizer.vocab_size) # 32000
-        # print("self.processor.action_tokenizer.vocab_size", self.processor.action_tokenizer.vocab_size) # 32064
         image = samples["image_raw"]
 
         if isinstance(samples["text_input_raw"], str):
@@ -393,9 +395,9 @@ if __name__ == "__main__":
         model = OpenVLA(model_id=model_id, dtype=dtype).to(device)
         # loss = model(samples)
         # print("loss", loss)
-        output = model.predict_answers(samples, prompt='Question: {} Short answer:')
+        output = model.predict_answers(samples, prompt='IN: {} ASSISTANT:')
         print(output)
 
-        actions = model.predict_action(samples, prompt='Question: {} Short answer:')
+        actions = model.predict_action(samples, prompt='IN: {} ASSISTANT:')
         print(actions)
 
