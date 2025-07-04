@@ -1,0 +1,24 @@
+datasets:
+  visualcomet:
+    data_type: images
+
+    build_info:
+      annotations:
+        train:
+          url:
+            - https://drive.google.com/file/d/1tpfOvH1YkbPe92QJNOzu8Q8MNfMGZHSl/view?usp=drive_link
+          storage:
+            - ./datasets_files/visualcomet/train_annots.json
+        val:
+          url:
+            - https://drive.google.com/file/d/1XVGyvN5KNJF2Aeny5e2XbVAsEMbCPBEo/view?usp=drive_link
+          storage:
+            - ./datasets_files/visualcomet/val_annots.json
+        test:
+          url:
+            - https://drive.google.com/file/d/1lzTZnKsybDfiK2rBtQ4DB_52Sf1yxhpq/view?usp=drive_link
+          storage:
+            - ./datasets_files/visualcomet/test_annots.json
+
+      images:
+        storage: images/visualcomet/  # local image folder path (예: visualcomet train/val/test image 폴더 포함)
