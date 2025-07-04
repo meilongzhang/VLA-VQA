@@ -3,10 +3,19 @@ from data.builders.base_dataset_builder import BaseDatasetBuilder
 from common.registry import registry
 from data.datasets.coco_vqa import *
 from data.datasets.gqa_datasets import *
+from data.datasets.visualcomet import *
 from pathlib import Path
 import warnings
 import os
 
+@registry.register_builder("visualcomet")
+class VisualCOMETBuilder(BaseDatasetBuilder):
+    train_dataset_cls = VisualCOMETDataset_Raw
+    eval_dataset_cls = VisualCOMETDataset_Raw
+
+    DATASET_CONFIG_DICT = {
+        "default": "configs/datasets/vqa/visualcomet.yaml"
+    }
 
 @registry.register_builder("coco_vqa_raw")
 class COCOVQABuilder_Raw(BaseDatasetBuilder):
