@@ -5,7 +5,7 @@ import logging
 from PIL import Image
 import requests
 import torch
-from transformers import AutoProcessor, AutoModelForVision2Seq, AutoModelForCausalLM
+from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
 from common.registry import registry
 from models.base_model import BaseModel
 from common.utils import get_abs_path, is_url, download_cached_file
@@ -15,22 +15,19 @@ import contextlib
 import copy
 from tasks.vqa_task_utils import QAOutput
 
-from models.ChatVLA_public.qwen2_vla import *
-from models.ChatVLA_public.policy_heads import *
-
-# @registry.register_model("chatvla")
-class ChatVLA(BaseModel):
+# @registry.register_model("qwenvl")
+class QwenVL(BaseModel):
     """
-    ChatVLA model.
+    QwenVL model.
     """
 
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "zzymeow/ChatVLA": "configs/models/chatvla/chatvla.yaml",
+        "Qwen/Qwen2-VL-2B-Instruct": "configs/models/qwen/qwen2_vl_2b_instruct.yaml",
     }
 
     def __init__(
         self,
-        model_id="zzymeow/ChatVLA",
+        model_id="Qwen/Qwen2-VL-2B-Instruct",
         dtype=torch.bfloat16,
         apply_lemmatizer=False,
         return_action=False,
@@ -42,14 +39,13 @@ class ChatVLA(BaseModel):
         self.dtype = dtype
         self.return_action = return_action
 
-        self.processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
+        self.processor = AutoProcessor.from_pretrained(model_id)
 
-        self.model = AutoModelForCausalLM.from_pretrained(
+        self.model = Qwen2VLForConditionalGeneration.from_pretrained(
             model_id,
             torch_dtype=dtype,
             attn_implementation="flash_attention_2",
             low_cpu_mem_usage=True,
-            trust_remote_code=True,
         )
         self.config = self.model.config
 
@@ -135,36 +131,23 @@ class ChatVLA(BaseModel):
         text_input = [self.processor.apply_chat_template([conv], tokenize=False, add_generation_prompt=True) for conv in conversation]
 
         model_inputs = self.processor(text=text_input, images=image, return_tensors="pt", padding="longest").to(self.dtype).to(self.device)
-        # print(model_inputs)
+        input_len = model_inputs["input_ids"].shape[-1]
 
-        if self.return_action:
-            all_actions, outputs = self.model.evaluate(
-                **model_inputs,
-                is_eval=True,
-            )
-            print('*'*50)
-            print(all_actions)
-            if self._apply_lemmatizer:
-                outputs = self._lemmatize(outputs)
-            return tuple(all_actions, outputs)
+        with torch.inference_mode():
+            outputs = self.model.generate(**model_inputs, max_new_tokens=100, do_sample=False)
+            # When the model generates a response, it appends the generated tokens to this input sequence.
+            outputs = outputs[:, input_len:]
+            output_text = self.processor.batch_decode(outputs, skip_special_tokens=True)
+        
+        if self._apply_lemmatizer:
+            output_text = self._lemmatize(output_text)
+
+        # print("output_text", output_text)
+
+        if ("return_dict" in kwargs) and kwargs["return_dict"]:
+            return QAOutput(answer=output_text)
         else:
-            generated_ids = self.model.generate(
-                **model_inputs,
-                is_eval=True,
-                eval_in_vqa=True,
-            )
-
-            generated_ids = [
-                output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-            ]
-            out = self.processor.tokenizer.batch_decode(
-                generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
-            )
-            response = out[0]
-            if self._apply_lemmatizer:
-                response = self._lemmatize(response)
-            print(f'\033[32m{response}\033[0m')
-            return response
+            return output_text
 
     def _lemmatize(self, answers):
         def apply(answer):
@@ -205,7 +188,7 @@ class ChatVLA(BaseModel):
 
     @classmethod
     def from_config(cls, cfg):
-        model_id = cfg.get("model_id", "zzymeow/ChatVLA")
+        model_id = cfg.get("model_id", "Qwen/Qwen2-VL-2B-Instruct")
         dtype = cfg.get("dtype", torch.bfloat16)
 
         model = cls(
@@ -342,7 +325,7 @@ class ChatVLA(BaseModel):
 
 if __name__ == "__main__":
     # Example usage:
-    model_id = "zzymeow/ChatVLA"
+    model_id = "Qwen/Qwen2-VL-2B-Instruct"
     device = "cuda:0"
     dtype = torch.bfloat16
 
@@ -356,7 +339,7 @@ if __name__ == "__main__":
         "multiple_choice_answer": ["red"],
     }
     with torch.inference_mode():
-        model = ChatVLA(model_id=model_id, dtype=dtype).to(device)
+        model = QwenVL(model_id=model_id, dtype=dtype).to(device)
         # loss = model(samples)
         # print("loss", loss)
         text = model.predict_answers(samples, prompt='Question: {} Short answer:')
