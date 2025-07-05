@@ -3,8 +3,8 @@ model:
   model_type: llava-1.5-7b-hf
   load_pretrained: True
   pretrained: 'https://huggingface.co/llava-hf/llava-1.5-7b-hf'
-  load_finetuned: True
-  finetuned: output/LLAVA/VQA/ft/checkpoint_best.pth
+  load_finetuned: False
+  finetuned: output/LLAVA/VisualCOMET/ft/checkpoint_best.pth
 
   # lora
   use_lora: 1
@@ -52,5 +52,5 @@ run:
   # distribution-specific
   device: "cuda"
   world_size: 1
-  dist_url: "env://"
-  distributed: True
+  dist_url: "tcp://localhost:23456"
+  distributed: False
