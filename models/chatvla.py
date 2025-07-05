@@ -136,6 +136,7 @@ class ChatVLA(BaseModel):
         text_input = [self.processor.apply_chat_template([conv], tokenize=False, add_generation_prompt=True) for conv in conversation]
 
         model_inputs = self.processor(text=text_input, images=image, return_tensors="pt", padding="longest").to(self.dtype).to(self.device)
+        input_len = model_inputs["input_ids"].shape[-1]
         # print(model_inputs)
 
         if self.return_action:
@@ -149,7 +150,7 @@ class ChatVLA(BaseModel):
                 outputs = self._lemmatize(outputs)
             return tuple(all_actions, outputs)
         else:
-            generated_ids = self.model.generate(
+            outputs = self.model.generate(
                 **model_inputs,
                 is_eval=True,
                 eval_in_vqa=True,
@@ -157,17 +158,18 @@ class ChatVLA(BaseModel):
                 do_sample=False,
             )
 
-            generated_ids = [
-                output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-            ]
-            out = self.processor.tokenizer.batch_decode(
-                generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
-            )
-            response = out[0]
+            outputs = outputs[:, input_len:]
+            output_text = self.processor.batch_decode(outputs, skip_special_tokens=True)
+
             if self._apply_lemmatizer:
-                response = self._lemmatize(response)
-            # print(f'\033[32m{response}\033[0m')
-            return response
+                output_text = self._lemmatize(output_text)
+
+            print(output_text)
+
+            if ("return_dict" in kwargs) and kwargs["return_dict"]:
+                return QAOutput(answer=output_text)
+            else:
+                return output_text
 
     def _lemmatize(self, answers):
         def apply(answer):

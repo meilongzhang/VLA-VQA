@@ -29,7 +29,7 @@ run:
 
   # optimization-specific
   batch_size_train: 16
-  batch_size_eval: 4
+  batch_size_eval: 1
   num_workers: 4
 
   # inference-specific
