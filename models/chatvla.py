@@ -18,7 +18,7 @@ from tasks.vqa_task_utils import QAOutput
 from models.ChatVLA_public.qwen2_vla import *
 from models.ChatVLA_public.policy_heads import *
 
-# @registry.register_model("chatvla")
+@registry.register_model("chatvla")
 class ChatVLA(BaseModel):
     """
     ChatVLA model.
@@ -132,7 +132,7 @@ class ChatVLA(BaseModel):
                 ],
             } for s, img in zip(text_input, image)
         ]
-        print("conversation", conversation)
+        # print("conversation", conversation)
         text_input = [self.processor.apply_chat_template([conv], tokenize=False, add_generation_prompt=True) for conv in conversation]
 
         model_inputs = self.processor(text=text_input, images=image, return_tensors="pt", padding="longest").to(self.dtype).to(self.device)
@@ -166,7 +166,7 @@ class ChatVLA(BaseModel):
             response = out[0]
             if self._apply_lemmatizer:
                 response = self._lemmatize(response)
-            print(f'\033[32m{response}\033[0m')
+            # print(f'\033[32m{response}\033[0m')
             return response
 
     def _lemmatize(self, answers):

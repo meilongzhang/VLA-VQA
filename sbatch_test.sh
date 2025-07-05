@@ -7,7 +7,7 @@ finetuned='None'
 # finetuned='output/PALIGEMMA/GQA/ft/checkpoint_best.pth'
 
 model='chatvla'
-dataset='textvqa'
+dataset='ok-vqa'
 
 name="test_${model}_${dataset}"
 job_name="${name}_$(date +%Y%m%d_%H%M%S)"

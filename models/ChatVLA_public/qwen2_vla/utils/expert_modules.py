@@ -16,9 +16,8 @@ class StaticMoE(nn.Module):
             output = self.experts[0](x) * vl_data_mask \
                                 + self.experts[1](x) * (1. - vl_data_mask)
         else:
-            dim = x.shape[-1]
             if eval_in_vqa:
-                output = self.experts[0](x.reshape(-1, dim)).unsqueeze(0)
+                output = self.experts[0](x)
             else:
-                output = self.experts[1](x.reshape(-1, dim)).unsqueeze(0)
+                output = self.experts[1](x)
         return output
