@@ -15,7 +15,7 @@ class __DisplMixin:
         sample, ann = self.__getitem__(index), self.annotation[index]
 
         return OrderedDict({
-            "file": ann["image"],
+            "file": ann["img_fn"],
             "question": ann["question"],
             "question_id": ann["question_id"],
             "answers": "; ".join(ann["answer"]),
@@ -56,22 +56,24 @@ class VisualCOMETDataset_Raw(BaseDataset):
 
     def __getitem__(self, index):
         ann = self.annotation[index]
-
-        image_path = os.path.join(self.vis_root, ann["image"])
+        image_path = os.path.join(self.vis_root, ann["img_fn"])
         image_raw = Image.open(image_path).convert("RGB")
+        
+
+        metadata_path = os.path.join(self.vis_root, ann["metadata_fn"])
+        with open(metadata_path, "r") as f:
+            meta = json.load(f)
+        print(meta)
+        question = self.text_processor(meta["question"])
+        answer_list = meta["answer"]
 
         answer_weight = {}
-        for answer in ann["answer"]:
-            answer_weight[answer] = answer_weight.get(answer, 0) + 1 / len(ann["answer"])
-
-        answers = list(answer_weight.keys())
-        weights = list(answer_weight.values())
-        multiple_choice_answer = max(set(ann["answer"]), key=ann["answer"].count)
+        for answer in answer_list:
+            answer_weight[answer] = answer_weight.get(answer, 0) + 1 / len(answer_list)
 
         return {
-            "answers": answers,
-            "multiple_choice_answer": multiple_choice_answer,
-            "weights": weights,
-            "image_raw": image_raw,
-            "text_input_raw": ann["question"],
+            "image": image,
+            "text_input": question,
+            "answers": list(answer_weight.keys()),
+            "weights": list(answer_weight.values()),
         }

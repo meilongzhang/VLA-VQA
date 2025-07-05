@@ -21,4 +21,4 @@ datasets:
             - ./datasets_files/visualcomet/test_annots.json
 
       images:
-        storage: images/visualcomet/  # local image folder path (예: visualcomet train/val/test image 폴더 포함)
+        storage: images/visualcomet/
