@@ -15,7 +15,7 @@ import contextlib
 import copy
 from tasks.vqa_task_utils import QAOutput
 
-# @registry.register_model("qwenvl")
+@registry.register_model("qwenvl")
 class QwenVL(BaseModel):
     """
     QwenVL model.

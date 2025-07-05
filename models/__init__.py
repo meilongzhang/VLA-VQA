@@ -7,6 +7,8 @@ from models.base_model import BaseModel
 from models.paligemma_vqa import PaliGemma_VQA
 from models.llava_vqa import Llava_VQA
 from models.openvla import OpenVLA
+from models.qwenvl import QwenVL
+from models.chatvla import ChatVLA
 
 from processors.base_processor import BaseProcessor
 
@@ -17,6 +19,8 @@ __all__ = [
     "PaliGemma_VQA",
     "Llava_VQA",
     "OpenVLA",
+    "QwenVL",
+    "ChatVLA",
 ]
 
 

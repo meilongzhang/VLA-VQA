@@ -132,6 +132,7 @@ class ChatVLA(BaseModel):
                 ],
             } for s, img in zip(text_input, image)
         ]
+        print("conversation", conversation)
         text_input = [self.processor.apply_chat_template([conv], tokenize=False, add_generation_prompt=True) for conv in conversation]
 
         model_inputs = self.processor(text=text_input, images=image, return_tensors="pt", padding="longest").to(self.dtype).to(self.device)
@@ -152,6 +153,8 @@ class ChatVLA(BaseModel):
                 **model_inputs,
                 is_eval=True,
                 eval_in_vqa=True,
+                max_new_tokens=100, 
+                do_sample=False,
             )
 
             generated_ids = [
@@ -351,9 +354,9 @@ if __name__ == "__main__":
     # print("image", np.array(image))
 
     samples = {
-        "image_raw": [image],
-        "text_input_raw": ["What is the color of the car"],
-        "multiple_choice_answer": ["red"],
+        "image_raw": [image, image],
+        "text_input_raw": ["What is the color of the car", "what is the brand of the car"],
+        "multiple_choice_answer": ["red", "BMW"],
     }
     with torch.inference_mode():
         model = ChatVLA(model_id=model_id, dtype=dtype).to(device)
