@@ -3,6 +3,7 @@ from data.builders.base_dataset_builder import BaseDatasetBuilder
 from common.registry import registry
 from data.datasets.coco_vqa import *
 from data.datasets.gqa_datasets import *
+from data.datasets.temporal_vqa import *
 from pathlib import Path
 import warnings
 import os
@@ -119,4 +120,13 @@ class COCOOKVQABuilder(BaseDatasetBuilder):
 
     DATASET_CONFIG_DICT = { 
         "default": "configs/datasets/vqa/ok-vqa.yaml"
+    }
+
+@registry.register_builder("temporal_vqa")
+class TemporalVQABuilder(BaseDatasetBuilder):
+    train_dataset_cls = TemporalVQADataset_Raw
+    eval_dataset_cls = TemporalVQAEvalDataset_Raw
+
+    DATASET_CONFIG_DICT = {
+        "default": "configs/datasets/vqa/temporal_vqa.yaml"
     }
