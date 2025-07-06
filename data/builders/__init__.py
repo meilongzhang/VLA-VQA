@@ -14,7 +14,8 @@ __all__ = [
     'VizWizBuilder',
     'COCOOKVQABuilder',
     'GQABuilder_Raw',
-    'GQAOODBuilder_Raw'
+    'GQAOODBuilder_Raw',
+    'VisualCOMETBuilder',
 ]
 
 

@@ -1,0 +1,5 @@
+model:
+  arch: chatvla
+  model_type: zzymeow/ChatVLA
+  load_pretrained: True
+  pretrained: 'https://huggingface.co/zzymeow/ChatVLA'

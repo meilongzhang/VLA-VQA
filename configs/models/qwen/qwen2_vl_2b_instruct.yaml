@@ -1,0 +1,5 @@
+model:
+  arch: qwenvl
+  model_type: Qwen/Qwen2-VL-2B-Instruct
+  load_pretrained: True
+  pretrained: 'https://huggingface.co/Qwen/Qwen2-VL-2B-Instruct'
