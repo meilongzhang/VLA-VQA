@@ -5,7 +5,7 @@
 # Source this file before running any scripts: source setup_env.sh
 
 # ====== HOME ROOT ======
-export HOME="/coc/testnvme/chuang475"  # Adjust to your home directory
+export HOME="/storage/home/hcoda1/8/mzhang445"  # Adjust to your home directory
 
 # ====== PROJECT PATHS ======
 export FRAMES_VQA_ROOT="${PWD}"
@@ -13,7 +13,7 @@ export FRAMES_VQA_ROOT="${PWD}"
 # ====== CONDA/PYTHON ENVIRONMENT ======
 export CONDA_BASE_PATH="${HOME}/miniconda3"  # Adjust to your conda installation
 # export CONDA_ENV_NAME="frames-vqa"  # Adjust to your environment name
-export CONDA_ENV_NAME="lavis_same"  # Adjust to your environment name
+export CONDA_ENV_NAME="openvla"  # Adjust to your environment name
 export PYTHON_BIN="${CONDA_BASE_PATH}/envs/${CONDA_ENV_NAME}/bin/python"
 
 # ====== DATA PATHS ======
